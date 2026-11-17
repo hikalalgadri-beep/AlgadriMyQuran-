@@ -1,226 +1,365 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Algadri MyQuran</title>
-    <!-- Tailwind CSS & Google Fonts -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDK Compat -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#075f49">
+  <title>AlgadriMyQuran</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body { font-family: "Plus Jakarta Sans", sans-serif; }
+    .arabic { font-family: "Amiri", serif; line-height: 2.1; }
+    button, a { touch-action: manipulation; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .modal-scroll { overscroll-behavior: contain; }
+    .soft-shadow { box-shadow: 0 8px 28px rgba(15, 72, 56, .07); }
+  </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col justify-between pb-10">
-
-    <!-- HEADER APLIKASI (Ketuk 3 kali judul untuk buka panel admin rahasia) -->
-    <div class="bg-white shadow-sm p-4 sticky top-0 z-30">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <div onclick="cekAdminRahasia()" class="cursor-pointer select-none">
-                <h1 id="app-title" class="text-xl font-bold text-emerald-600">Algadri MyQuran</h1>
-                <p class="text-xs text-slate-400">Aplikasi Baca Al-Qur'an & Donasi</p>
-            </div>
-            <!-- Tombol alternatif buka admin yang tersembunyi/kecil -->
-            <button onclick="bukaAdmin()" class="text-[10px] text-slate-300 hover:text-slate-500 p-2">
-                ⚙️
-            </button>
-        </div>
+<body class="min-h-screen bg-[#f7faf9] text-slate-800">
+  <header class="sticky top-0 z-30 bg-gradient-to-r from-[#075f49] to-[#08745a] text-white shadow-lg">
+    <div class="mx-auto flex max-w-3xl items-center justify-between px-5 py-5">
+      <button id="brand-tap" type="button" class="text-left">
+        <span id="app-title" class="block text-xl font-extrabold tracking-tight">AlgadriMyQuran</span>
+        <span class="mt-1 block text-sm text-emerald-100">Sahabat Ibadah &amp; Al-Qur'an Digital</span>
+      </button>
+      <button id="btn-admin" type="button" aria-label="Panel admin" class="grid h-12 w-12 place-items-center rounded-full border border-white/25 bg-white/10 text-2xl hover:bg-white/20 active:scale-95">📖</button>
     </div>
+  </header>
 
-    <!-- KONTEN UTAMA -->
-    <main class="max-w-md mx-auto w-full p-4 flex-1 space-y-4">
-        
-        <!-- Kotak Rekening / Donasi (Tombol aman tidak terhalang) -->
-        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm relative z-10">
-            <h2 class="text-xs font-semibold text-emerald-800 uppercase tracking-wider mb-1">Rekening Donasi Resmi</h2>
-            <p id="app-rekening" class="text-base font-mono font-bold text-slate-800 select-all">6285117316040</p>
-            
-            <a id="app-sosmed" href="https://whatsapp.com" target="_blank" class="mt-3 block text-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 rounded-xl transition shadow cursor-pointer relative z-20">
-                Kunjungi Saluran / Media Sosial
-            </a>
+  <main class="mx-auto max-w-3xl space-y-5 px-4 pb-12 pt-5">
+    <section class="rounded-[28px] bg-gradient-to-br from-emerald-600 to-teal-800 p-6 text-white shadow-lg">
+      <h1 class="text-2xl font-extrabold">Ahlan wa Sahlan! 👋</h1>
+      <p class="mt-3 text-sm leading-7 text-emerald-50 sm:text-base">Jelajahi 114 Surah Al-Qur'an lengkap dengan terjemahan, audio murottal, doa, dan dzikir harian.</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <button type="button" data-open="quran" class="rounded-2xl bg-white px-6 py-3 font-bold text-emerald-800 shadow hover:bg-emerald-50 active:scale-95">Buka Al-Qur'an</button>
+        <button type="button" data-open="dzikir" class="rounded-2xl border border-emerald-300/70 bg-white/5 px-6 py-3 font-bold text-white hover:bg-white/10 active:scale-95">Mulai Dzikir</button>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-2 gap-3">
+      <button type="button" data-open="quran" class="flex min-h-28 items-center gap-3 rounded-3xl border border-emerald-100 bg-white p-4 text-left soft-shadow hover:border-emerald-300 hover:bg-emerald-50 active:scale-[.98]">
+        <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-2xl">📖</span>
+        <span><strong class="block text-base sm:text-lg">114 Surah</strong><small id="api-status" class="mt-1 block text-slate-400">Siap dimuat</small></span>
+      </button>
+      <button type="button" data-open="doa" class="flex min-h-28 items-center gap-3 rounded-3xl border border-slate-100 bg-white p-4 text-left soft-shadow hover:border-emerald-300 hover:bg-emerald-50 active:scale-[.98]">
+        <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-2xl">🤲</span>
+        <span><strong class="block text-base sm:text-lg">Doa Harian</strong><small class="mt-1 block text-slate-400">Wajib &amp; Pilihan</small></span>
+      </button>
+      <button type="button" data-open="dzikir" class="flex min-h-28 items-center gap-3 rounded-3xl border border-slate-100 bg-white p-4 text-left soft-shadow hover:border-emerald-300 hover:bg-emerald-50 active:scale-[.98]">
+        <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-2xl">📿</span>
+        <span><strong class="block text-base sm:text-lg">Dzikir Nabi</strong><small class="mt-1 block text-slate-400">Digital Counter</small></span>
+      </button>
+      <button type="button" data-open="dukungan" class="flex min-h-28 items-center gap-3 rounded-3xl border border-slate-100 bg-white p-4 text-left soft-shadow hover:border-emerald-300 hover:bg-emerald-50 active:scale-[.98]">
+        <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-2xl">💡</span>
+        <span><strong class="block text-base sm:text-lg">Dukungan</strong><small class="mt-1 block text-slate-400">DANA &amp; Channel</small></span>
+      </button>
+    </section>
+
+    <section class="rounded-3xl border border-slate-100 bg-white p-6 soft-shadow">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="font-extrabold tracking-wide text-emerald-800">AYAT PILIHAN HARI INI</h2>
+        <span class="rounded-lg bg-slate-100 px-3 py-1 text-xs text-slate-500">QS. Al-Baqarah: 152</span>
+      </div>
+      <p class="arabic mt-5 text-center text-3xl text-slate-900" dir="rtl">فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ</p>
+      <p class="mt-5 text-sm italic leading-7 text-slate-600">"Maka ingatlah kepada-Ku, Aku pun akan ingat kepadamu. Bersyukurlah kepada-Ku, dan janganlah kamu ingkar kepada-Ku."</p>
+    </section>
+
+    <section class="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-5">
+      <h2 class="font-bold text-emerald-900">Pengingat kebaikan 🌿</h2>
+      <p class="mt-2 text-sm leading-6 text-emerald-900/75">Luangkan waktu untuk membaca Al-Qur'an, berdoa, dan berdzikir setiap hari.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-100 bg-white px-4 py-5 text-center text-xs text-slate-400">
+    © <span id="year"></span> <span id="footer-title">AlgadriMyQuran</span> · Semoga bermanfaat
+  </footer>
+
+  <!-- Modal fitur utama -->
+  <div id="app-modal" class="fixed inset-0 z-40 hidden bg-slate-950/60 p-0 backdrop-blur-sm sm:p-5">
+    <section class="modal-scroll mx-auto flex h-full w-full max-w-2xl flex-col overflow-hidden bg-[#f8fbf9] shadow-2xl sm:h-[92vh] sm:rounded-3xl">
+      <div class="flex shrink-0 items-center justify-between bg-[#075f49] px-5 py-4 text-white">
+        <div class="flex items-center gap-3">
+          <button id="modal-back" type="button" class="hidden rounded-xl bg-white/10 px-3 py-2 text-sm hover:bg-white/20">← Kembali</button>
+          <h2 id="modal-title" class="text-lg font-extrabold">Al-Qur'an</h2>
         </div>
+        <button id="modal-close" type="button" aria-label="Tutup" class="rounded-xl bg-white/10 px-3 py-2 text-xl hover:bg-white/20">×</button>
+      </div>
+      <div id="modal-content" class="modal-scroll flex-1 overflow-y-auto p-4 sm:p-6"></div>
+      <div id="audio-wrap" class="hidden shrink-0 border-t border-slate-200 bg-white p-3">
+        <p id="audio-label" class="mb-2 text-xs font-semibold text-slate-500">Audio murottal</p>
+        <audio id="audio-player" class="w-full" controls preload="none"></audio>
+      </div>
+    </section>
+  </div>
 
-        <!-- Daftar Dukungan / Donatur -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-100">
-            <h2 class="text-sm font-bold text-slate-700 mb-2">Daftar Dukungan</h2>
-            <div id="app-dukungan" class="text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <p>1. Rafa</p>
-            </div>
+  <!-- Modal admin -->
+  <div id="admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+    <section class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-extrabold">Panel Admin</h2>
+        <button id="admin-close" type="button" class="rounded-xl bg-slate-100 px-3 py-2 text-xl">×</button>
+      </div>
+      <div id="admin-login" class="space-y-3">
+        <p class="text-sm text-slate-500">Masuk untuk mengubah pengaturan aplikasi.</p>
+        <label class="block text-sm font-semibold">Username
+          <input id="input-user" autocomplete="username" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-500" placeholder="Username">
+        </label>
+        <label class="block text-sm font-semibold">Password
+          <input id="input-pass" type="password" autocomplete="current-password" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-500" placeholder="Password">
+        </label>
+        <button id="admin-login-btn" type="button" class="w-full rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800">Login Admin</button>
+        <p id="admin-message" class="text-xs text-slate-500"></p>
+      </div>
+      <div id="admin-settings" class="hidden space-y-3">
+        <label class="block text-sm font-semibold">Nama Aplikasi
+          <input id="input-title" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-500">
+        </label>
+        <label class="block text-sm font-semibold">Nomor Rekening / DANA
+          <input id="input-rekening" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-500">
+        </label>
+        <label class="block text-sm font-semibold">Link Media Sosial / Channel
+          <input id="input-sosmed" type="url" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-500" placeholder="https://...">
+        </label>
+        <label class="block text-sm font-semibold">Daftar Dukungan (satu nama per baris)
+          <textarea id="input-dukungan" rows="4" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-3 outline-none focus:border-emerald-500"></textarea>
+        </label>
+        <button id="admin-save-btn" type="button" class="w-full rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800">Simpan Perubahan</button>
+        <button id="admin-logout-btn" type="button" class="w-full rounded-xl bg-slate-100 px-4 py-3 font-semibold text-slate-700">Logout Admin</button>
+        <p id="admin-save-message" class="text-xs text-slate-500"></p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Konfigurasi Firebase dari project sebelumnya.
+    // Jika Firebase belum tersedia/izin database ditolak, fitur lain tetap bisa dipakai.
+    const firebaseConfig = {
+      databaseURL: "https://algadrimyquran-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+
+    const DEFAULT_SETTINGS = {
+      title: "AlgadriMyQuran",
+      rekening: "6285117316040",
+      sosmed: "https://whatsapp.com",
+      dukungan: "1. Rafa"
+    };
+
+    let db = null;
+    let firebaseReady = false;
+    let isAdminLoggedIn = false;
+    let tapCount = 0;
+    let tapTimer = null;
+    let allSurahs = [];
+    let currentSurah = null;
+    let currentView = "home";
+    let dzikirCount = Number(localStorage.getItem("algadri_dzikir_count") || 0);
+    let selectedDzikir = localStorage.getItem("algadri_dzikir_type") || "subhanallah";
+
+    const $ = (id) => document.getElementById(id);
+    $("year").textContent = new Date().getFullYear();
+
+    function safeReadSettings() {
+      try {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("algadri_settings") || "{}") };
+      } catch (_) {
+        return { ...DEFAULT_SETTINGS };
+      }
+    }
+
+    function safeUrl(value) {
+      try {
+        const url = new URL(value);
+        return ["http:", "https:"].includes(url.protocol) ? url.href : "#";
+      } catch (_) {
+        return "#";
+      }
+    }
+
+    function applySettings(settings) {
+      const data = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+      $("app-title").textContent = data.title || DEFAULT_SETTINGS.title;
+      $("footer-title").textContent = data.title || DEFAULT_SETTINGS.title;
+      $("app-rekening") && ($("app-rekening").textContent = data.rekening || DEFAULT_SETTINGS.rekening);
+      $("app-sosmed") && ($("app-sosmed").href = safeUrl(data.sosmed || DEFAULT_SETTINGS.sosmed));
+      renderSupport(data);
+      renderSupporters(data.dukungan);
+    }
+
+    function renderSupport(settings) {
+      const number = settings.rekening || DEFAULT_SETTINGS.rekening;
+      const link = safeUrl(settings.sosmed || DEFAULT_SETTINGS.sosmed);
+      const target = $("modal-content");
+      if (currentView !== "dukungan") return;
+      target.innerHTML = `
+        <div class="rounded-3xl bg-emerald-50 p-5">
+          <p class="text-xs font-bold uppercase tracking-wider text-emerald-800">Dukungan resmi</p>
+          <h3 class="mt-2 text-lg font-extrabold text-slate-800">Dukung pengembangan AlgadriMyQuran</h3>
+          <p class="mt-2 text-sm leading-6 text-slate-600">Terima kasih atas dukungan dan doa baiknya.</p>
         </div>
-
-        <!-- Daftar Surat Al-Qur'an (Bisa diklik tiap suratnya) -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-100">
-            <h2 class="text-sm font-bold text-slate-700 mb-3">Daftar Surat Al-Qur'an</h2>
-            <div id="daftar-surat" class="space-y-2">
-                <p class="text-xs text-slate-400 text-center py-4">Memuat daftar surat...</p>
-            </div>
+        <div class="mt-4 rounded-2xl border border-slate-100 bg-white p-5">
+          <p class="text-sm font-semibold text-slate-500">Nomor rekening / DANA</p>
+          <p id="support-number" class="mt-2 break-all font-mono text-xl font-extrabold text-slate-800">${escapeHtml(number)}</p>
+          <button id="copy-number" type="button" class="mt-4 w-full rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white hover:bg-emerald-800">Salin Nomor</button>
+          <a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" class="mt-3 block rounded-xl border border-emerald-200 px-4 py-3 text-center font-bold text-emerald-800 hover:bg-emerald-50">Buka Channel / Media Sosial ↗</a>
         </div>
-    </main>
+        <div class="mt-4 rounded-2xl border border-slate-100 bg-white p-5">
+          <h3 class="font-bold">Daftar Dukungan</h3>
+          <div id="supporters-list" class="mt-3 space-y-2 text-sm text-slate-600"></div>
+        </div>`;
+      renderSupporters(settings.dukungan);
+      $("copy-number").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(number);
+          $("copy-number").textContent = "Berhasil disalin ✓";
+        } catch (_) {
+          const area = document.createElement("textarea");
+          area.value = number;
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+          $("copy-number").textContent = "Berhasil disalin ✓";
+        }
+      });
+    }
 
-    <!-- MODAL PANEL ADMIN TERSEMBUNYI -->
-    <div id="admin-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-3">
-            <h2 class="text-lg font-bold text-slate-800">Panel Admin Terpusat</h2>
-            
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
-                <input type="text" id="input-user" placeholder="Masukkan username" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
-                <input type="password" id="input-pass" placeholder="Masukkan password" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-            </div>
+    function renderSupporters(text) {
+      const list = $("supporters-list");
+      if (!list) return;
+      const lines = String(text || "").split("\n").map(x => x.trim()).filter(Boolean);
+      list.innerHTML = lines.length
+        ? lines.map((line, i) => `<p class="rounded-lg bg-slate-50 px-3 py-2">${i + 1}. ${escapeHtml(line.replace(/^\d+\.\s*/, ""))}</p>`).join("")
+        : '<p class="text-slate-400">Belum ada daftar dukungan.</p>';
+    }
 
-            <div id="form-pengaturan" class="hidden space-y-3 pt-2 border-t border-slate-100">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Aplikasi</label>
-                    <input type="text" id="input-title" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Rekening</label>
-                    <input type="text" id="input-rekening" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Link Media Sosial</label>
-                    <input type="text" id="input-sosmed" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Daftar Dukungan (Gunakan garis baru / enter)</label>
-                    <textarea id="input-dukungan" rows="3" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-                </div>
-            </div>
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
 
-            <div class="flex space-x-2 pt-2">
-                <button onclick="tutupAdmin()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-medium text-sm transition">
-                    Batal
-                </button>
-                <button id="btn-aksi-admin" onclick="prosesLoginAdmin()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-medium text-sm transition shadow">
-                    Login Admin
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCRIPT UTAMA & FIREBASE -->
-    <script>
-        // Inisialisasi Firebase Realtime Database kamu
-        const firebaseConfig = {
-            databaseURL: "https://algadrimyquran-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // 1. Ambil Data Real-time dari Firebase
-        db.ref('pengaturan').on('value', (snapshot) => {
+    function initializeFirebase() {
+      try {
+        if (window.firebase && !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        if (window.firebase) {
+          db = firebase.database();
+          firebaseReady = true;
+          db.ref("pengaturan").on("value", snapshot => {
             const data = snapshot.val();
             if (data) {
-                document.getElementById('app-title').innerText = data.title || "Algadri MyQuran";
-                document.getElementById('app-rekening').innerText = data.rekening || "6285117316040";
-                document.getElementById('app-sosmed').href = data.sosmed || "#";
-                if(data.dukungan) {
-                    // Format teks dukungan dengan mempertahankan baris baru
-                    let formatDukungan = data.dukungan.split('\n').map(item => `<p>${item}</p>`).join('');
-                    document.getElementById('app-dukungan').innerHTML = formatDukungan;
-                }
+              localStorage.setItem("algadri_settings", JSON.stringify({ ...safeReadSettings(), ...data }));
+              applySettings({ ...safeReadSettings(), ...data });
             }
-        });
-
-        // 2. Ambil Daftar Surat Al-Qur'an dari API Publik
-        fetch('https://equran.id/api/v2/surat')
-            .then(response => response.json())
-            .then(result => {
-                const container = document.getElementById('daftar-surat');
-                container.innerHTML = ''; 
-                
-                result.data.forEach(surat => {
-                    const item = document.createElement('div');
-                    item.className = "flex justify-between items-center p-3 hover:bg-emerald-50 rounded-xl transition border-b border-slate-50 cursor-pointer relative z-20";
-                    item.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">${surat.nomor}</span>
-                            <div>
-                                <h3 class="text-sm font-bold text-slate-800">${surat.namaLatin}</h3>
-                                <p class="text-xs text-slate-400">${surat.arti} (${surat.jumlahAyat} Ayat)</p>
-                            </div>
-                        </div>
-                        <span class="text-lg font-serif text-emerald-600 font-bold">${surat.nama}</span>
-                    `;
-                    // Aksi ketika surat diklik (bisa dikustomisasi nanti)
-                    item.onclick = () => {
-                        alert("Membuka Surat: " + surat.namaLatin);
-                    };
-                    container.appendChild(item);
-                });
-            })
-            .catch(() => {
-                document.getElementById('daftar-surat').innerHTML = '<p class="text-xs text-red-500 text-center">Gagal memuat daftar surat. Periksa koneksi internet.</p>';
-            });
-
-        // 3. Logika Ketuk 3 Kali untuk Keamanan Panel Admin
-        let ketukanCount = 0;
-        function cekAdminRahasia() {
-            ketukanCount++;
-            setTimeout(() => { ketukanCount = 0; }, 1000); // Reset dalam 1 detik
-            if (ketukanCount >= 3) {
-                bukaAdmin();
-                ketukanCount = 0;
-            }
+          }, error => {
+            console.warn("Firebase read:", error);
+          });
         }
+      } catch (error) {
+        console.warn("Firebase belum aktif:", error);
+        firebaseReady = false;
+      }
+    }
 
-        let isAdminLoggedIn = false;
+    applySettings(safeReadSettings());
+    initializeFirebase();
 
-        function bukaAdmin() {
-            document.getElementById('admin-modal').classList.remove('hidden');
-            if (!isAdminLoggedIn) {
-                document.getElementById('form-pengaturan').classList.add('hidden');
-                document.getElementById('btn-aksi-admin').innerText = "Login Admin";
-            }
-        }
+    // Semua tombol fitur utama menggunakan data-open agar aksi klik konsisten.
+    document.querySelectorAll("[data-open]").forEach(button => {
+      button.addEventListener("click", () => openFeature(button.dataset.open));
+    });
 
-        function tutupAdmin() {
-            document.getElementById('admin-modal').classList.add('hidden');
-        }
+    function openModal(title) {
+      $("modal-title").textContent = title;
+      $("app-modal").classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+    }
 
-        function prosesLoginAdmin() {
-            if (!isAdminLoggedIn) {
-                let user = document.getElementById('input-user').value;
-                let pass = document.getElementById('input-pass').value;
+    function closeModal() {
+      $("app-modal").classList.add("hidden");
+      $("audio-player").pause();
+      $("audio-player").removeAttribute("src");
+      $("audio-wrap").classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+      currentView = "home";
+      currentSurah = null;
+    }
 
-                if (user === "algadri" && pass === "hakim201230") {
-                    isAdminLoggedIn = true;
-                    alert("Login Admin Berhasil!");
-                    document.getElementById('form-pengaturan').classList.remove('hidden');
-                    document.getElementById('btn-aksi-admin').innerText = "Simpan Perubahan";
-                    
-                    // Masukkan data saat ini ke dalam form input
-                    document.getElementById('input-title').value = document.getElementById('app-title').innerText;
-                    document.getElementById('input-rekening').value = document.getElementById('app-rekening').innerText;
-                    document.getElementById('input-sosmed').value = document.getElementById('app-sosmed').href;
-                    document.getElementById('input-dukungan').value = document.getElementById('app-dukungan').innerText;
-                } else {
-                    alert("Username atau Password salah!");
-                }
-            } else {
-                // Proses Simpan ke Firebase
-                const newTitle = document.getElementById('input-title').value;
-                const newRekening = document.getElementById('input-rekening').value;
-                const newSosmed = document.getElementById('input-sosmed').value;
-                const newDukungan = document.getElementById('input-dukungan').value;
+    $("modal-close").addEventListener("click", closeModal);
+    $("app-modal").addEventListener("click", event => {
+      if (event.target === $("app-modal")) closeModal();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        closeModal();
+        closeAdmin();
+      }
+    });
 
-                db.ref('pengaturan').set({
-                    title: newTitle,
-                    rekening: newRekening,
-                    sosmed: newSosmed,
-                    dukungan: newDukungan
-                }, (error) => {
-                    if (error) {
-                        alert("Gagal menyimpan data!");
-                    } else {
-                        alert("Berhasil disimpan secara online!");
-                        tutupAdmin();
-                    }
-                });
-            }
-        }
-    </script>
-</body>
-</html>
+    function openFeature(feature) {
+      currentView = feature;
+      $("modal-back").classList.add("hidden");
+      $("audio-wrap").classList.add("hidden");
+      $("audio-player").pause();
+      if (feature === "quran") {
+        openModal("Daftar 114 Surah");
+        loadSurahs();
+      } else if (feature === "dzikir") {
+        openModal("Dzikir Digital");
+        renderDzikir();
+      } else if (feature === "doa") {
+        openModal("Doa Harian");
+        renderDoa();
+      } else if (feature === "dukungan") {
+        openModal("Dukungan");
+        renderSupport(safeReadSettings());
+      }
+    }
+
+    async function loadSurahs() {
+      $("modal-title").textContent = "Daftar 114 Surah";
+      $("modal-back").classList.add("hidden");
+      $("modal-back").onclick = null;
+      $("modal-content").innerHTML = '<div class="py-12 text-center text-slate-500"><div class="text-3xl">📖</div><p class="mt-3">Memuat daftar surah...</p></div>';
+      $("api-status").textContent = "Menghubungkan API...";
+      if (allSurahs.length) {
+        $("api-status").textContent = "114 Surah tersedia";
+        renderSurahList(allSurahs);
+        return;
+      }
+      try {
+        const response = await fetch("https://equran.id/api/v2/surat");
+        if (!response.ok) throw new Error("API tidak merespons");
+        const result = await response.json();
+        if (!result.data || !Array.isArray(result.data)) throw new Error("Format data tidak sesuai");
+        allSurahs = result.data;
+        $("api-status").textContent = `${allSurahs.length} Surah tersedia`;
+        renderSurahList(allSurahs);
+      } catch (error) {
+        $("api-status").textContent = "Periksa koneksi";
+        $("modal-content").innerHTML = `
+          <div class="rounded-2xl bg-red-50 p-5 text-center">
+            <p class="font-bold text-red-700">Daftar surah belum berhasil dimuat.</p>
+            <p class="mt-2 text-sm text-red-600">Periksa koneksi internet lalu coba lagi.</p>
+            <button id="retry-surah" type="button" class="mt-4 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white">Coba Lagi</button>
+          </div>`;
+        $("retry-surah").addEventListener("click", loadSurahs);
+      }
+    }
+
+    function renderSurahList(surahs) {
+      $("modal-content").innerHTML = `
+        <input id="surah-search" type="search" placeholder="Cari nama surah..." class="mb-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-emerald-500">
+        <div id="surah-list" class="space-y-2"></div>`;
+      const list = $("surah-list");
+      const draw = items => {
+        list.innerHTML = items.length ? items.map(surah => `
+          <button type="button" data-surah-id="${surah.nomor}" class="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-left hover:border-emerald-300 hover:bg-emerald-50 active:scale-[.99]">
+            <span class="flex min-w-0 items-center gap-3">
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-extrabold text-emerald-800">${surah.nomor}</span>
+              <span class="min-w-
