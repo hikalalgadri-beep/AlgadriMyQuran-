@@ -3,285 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlgadriMyQuran - Al-Qur'an & Panduan Ibadah</title>
+    <title>Algadri MyQuran</title>
+    <!-- Tailwind CSS & Google Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        .font-arabic { font-family: 'Amiri', serif; }
-        body { font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-    </style>
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-slate-50 min-h-screen flex flex-col justify-between pb-10">
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-800 text-white px-6 py-3 rounded-full shadow-lg text-sm font-medium transition-all duration-300 opacity-0 pointer-events-none">
-        Pemberitahuan
+    <!-- HEADER APLIKASI (Ketuk 3 kali judul untuk buka panel admin rahasia) -->
+    <div class="bg-white shadow-sm p-4 sticky top-0 z-30">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div onclick="cekAdminRahasia()" class="cursor-pointer select-none">
+                <h1 id="app-title" class="text-xl font-bold text-emerald-600">Algadri MyQuran</h1>
+                <p class="text-xs text-slate-400">Aplikasi Baca Al-Qur'an & Donasi</p>
+            </div>
+            <!-- Tombol alternatif buka admin yang tersembunyi/kecil -->
+            <button onclick="bukaAdmin()" class="text-[10px] text-slate-300 hover:text-slate-500 p-2">
+                ⚙️
+            </button>
+        </div>
     </div>
 
-    <!-- Main Wrapper App -->
-    <div class="w-full max-w-md mx-auto bg-white shadow-xl min-h-screen flex flex-col relative pb-20">
+    <!-- KONTEN UTAMA -->
+    <main class="max-w-md mx-auto w-full p-4 flex-1 space-y-4">
+        
+        <!-- Kotak Rekening / Donasi (Tombol aman tidak terhalang) -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm relative z-10">
+            <h2 class="text-xs font-semibold text-emerald-800 uppercase tracking-wider mb-1">Rekening Donasi Resmi</h2>
+            <p id="app-rekening" class="text-base font-mono font-bold text-slate-800 select-all">6285117316040</p>
+            
+            <a id="app-sosmed" href="https://whatsapp.com" target="_blank" class="mt-3 block text-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 rounded-xl transition shadow cursor-pointer relative z-20">
+                Kunjungi Saluran / Media Sosial
+            </a>
+        </div>
 
-        <!-- Header -->
-        <header class="bg-gradient-to-r from-emerald-700 to-emerald-900 text-white p-5 sticky top-0 z-40 shadow-md">
-            <div class="flex justify-between items-center">
+        <!-- Daftar Dukungan / Donatur -->
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-100">
+            <h2 class="text-sm font-bold text-slate-700 mb-2">Daftar Dukungan</h2>
+            <div id="app-dukungan" class="text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <p>1. Rafa</p>
+            </div>
+        </div>
+
+        <!-- Daftar Surat Al-Qur'an (Bisa diklik tiap suratnya) -->
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-100">
+            <h2 class="text-sm font-bold text-slate-700 mb-3">Daftar Surat Al-Qur'an</h2>
+            <div id="daftar-surat" class="space-y-2">
+                <p class="text-xs text-slate-400 text-center py-4">Memuat daftar surat...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL PANEL ADMIN TERSEMBUNYI -->
+    <div id="admin-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-3">
+            <h2 class="text-lg font-bold text-slate-800">Panel Admin Terpusat</h2>
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
+                <input type="text" id="input-user" placeholder="Masukkan username" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                <input type="password" id="input-pass" placeholder="Masukkan password" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <div id="form-pengaturan" class="hidden space-y-3 pt-2 border-t border-slate-100">
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">AlgadriMyQuran</h1>
-                    <p class="text-xs text-emerald-200 mt-0.5">Sahabat Ibadah & Al-Qur'an Digital</p>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Aplikasi</label>
+                    <input type="text" id="input-title" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
-                <div class="w-10 h-10 rounded-full bg-emerald-600/50 flex items-center justify-center border border-emerald-500">
-                    📖
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Rekening</label>
+                    <input type="text" id="input-rekening" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Link Media Sosial</label>
+                    <input type="text" id="input-sosmed" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Daftar Dukungan (Gunakan garis baru / enter)</label>
+                    <textarea id="input-dukungan" rows="3" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
                 </div>
             </div>
-        </header>
 
-        <!-- Content Area -->
-        <main class="flex-1 overflow-y-auto p-4 space-y-4">
-
-            <!-- TAB 1: BERANDA -->
-            <section id="tab-beranda" class="tab-content space-y-4">
-                <div class="bg-gradient-to-br from-emerald-600 to-teal-800 text-white p-5 rounded-2xl shadow-sm relative overflow-hidden">
-                    <h2 class="text-lg font-bold">Ahlan wa Sahlan! 👋</h2>
-                    <p class="text-xs text-emerald-100 mt-1 leading-relaxed">Jelajahi 114 Surah Al-Qur'an lengkap dengan terjemahan Kemenag RI, audio murottal, doa, dan dzikir harian.</p>
-                    <div class="mt-4 flex gap-2">
-                        <button onclick="switchTab('quran')" class="bg-white text-emerald-800 px-4 py-2 rounded-xl text-xs font-semibold shadow hover:bg-emerald-50 transition">Buka Al-Qur'an</button>
-                        <button onclick="switchTab('dzikir')" class="bg-emerald-700/80 text-white border border-emerald-500 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-emerald-700 transition">Mulai Dzikir</button>
-                    </div>
-                </div>
-
-                <!-- Quick Menu -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div onclick="switchTab('quran')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 cursor-pointer hover:border-emerald-300 transition">
-                        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">📖</div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-slate-700">114 Surah</h3>
-                            <p class="text-[11px] text-slate-400">API Terhubung</p>
-                        </div>
-                    </div>
-                    <div onclick="switchTab('doa')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 cursor-pointer hover:border-emerald-300 transition">
-                        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">🤲</div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-slate-700">Doa Harian</h3>
-                            <p class="text-[11px] text-slate-400">Wajib & Pilihan</p>
-                        </div>
-                    </div>
-                    <div onclick="switchTab('dzikir')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 cursor-pointer hover:border-emerald-300 transition">
-                        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">📿</div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-slate-700">Dzikir Nabi</h3>
-                            <p class="text-[11px] text-slate-400">Digital Counter</p>
-                        </div>
-                    </div>
-                    <div onclick="switchTab('support')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 cursor-pointer hover:border-emerald-300 transition">
-                        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">💡</div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-slate-700">Dukungan</h3>
-                            <p class="text-[11px] text-slate-400">DANA & Channel</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ayat Pilihan -->
-                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Ayat Pilihan Hari Ini</span>
-                        <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded">QS. Al-Baqarah: 152</span>
-                    </div>
-                    <p class="font-arabic text-right text-xl text-slate-800 leading-loose">فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ</p>
-                    <p class="text-xs text-slate-600 italic">"Maka ingatlah kepada-Ku, Aku pun akan ingat kepadamu. Bersyukurlah kepada-Ku, dan janganlah kamu ingkar kepada-Ku."</p>
-                </div>
-            </section>
-
-            <!-- TAB 2: AL-QUR'AN -->
-            <section id="tab-quran" class="tab-content hidden space-y-3">
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-base font-bold text-slate-800">Daftar Surah (114)</h2>
-                        <span id="quran-status" class="text-xs text-slate-400">Memuat API...</span>
-                    </div>
-                    <input type="text" id="surah-search" oninput="filterSurahList()" placeholder="Cari nama surah (contoh: Yasin, Al-Kahf)..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div id="surah-list" class="space-y-2.5">
-                    <div class="text-center py-10 text-slate-400 text-xs">Menghubungkan ke server Al-Qur'an...</div>
-                </div>
-            </section>
-
-            <!-- TAB 3: DOA -->
-            <section id="tab-doa" class="tab-content hidden space-y-3">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-base font-bold text-slate-800">Doa Wajib & Harian</h2>
-                    <div class="flex gap-1">
-                        <button onclick="filterDoa('semua')" class="px-2.5 py-1 text-xs rounded-lg bg-emerald-600 text-white font-medium filter-btn active">Semua</button>
-                        <button onclick="filterDoa('wajib')" class="px-2.5 py-1 text-xs rounded-lg bg-slate-200 text-slate-700 font-medium filter-btn">Sholat</button>
-                        <button onclick="filterDoa('harian')" class="px-2.5 py-1 text-xs rounded-lg bg-slate-200 text-slate-700 font-medium filter-btn">Harian</button>
-                    </div>
-                </div>
-                <div id="doa-list" class="space-y-3"></div>
-            </section>
-
-            <!-- TAB 4: DZIKIR -->
-            <section id="tab-dzikir" class="tab-content hidden space-y-4">
-                <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
-                    <h2 class="text-sm font-bold text-emerald-800">📿 Dzikir Rekomendasi Nabi SAW</h2>
-                    <p class="text-xs text-emerald-600 mt-1">Pilih bacaan dzikir dan ketuk counter digital di bawah.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Bacaan Dzikir:</label>
-                    <select id="dzikir-select" onchange="changeDzikir()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    </select>
-                </div>
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm space-y-3">
-                    <div id="dzikir-arabic" class="font-arabic text-2xl text-emerald-900 leading-loose">سُبْحَانَ اللَّهِ</div>
-                    <div id="dzikir-latin" class="text-xs text-slate-500 italic">Subhanallah</div>
-                    <div class="py-4">
-                        <span id="counter-value" class="text-6xl font-black text-emerald-700">0</span>
-                        <span class="text-xs text-slate-400 block mt-1">Target: <span id="counter-target">33</span>x</span>
-                    </div>
-                    <div class="flex justify-center gap-3 pt-2">
-                        <button onclick="resetCounter()" class="w-14 h-14 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-semibold transition active:scale-95 shadow-inner">🔄</button>
-                        <button onclick="incrementCounter()" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95 text-lg flex items-center justify-center gap-2">
-                            <span>Ketuk Dzikir (Tap)</span>
-                            <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+1</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 5: DUKUNGAN -->
-            <section id="tab-support" class="tab-content hidden space-y-4">
-                <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-center space-y-4">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">💡</div>
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">Dukung Perkembangan AlgadriMyQuran</h2>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Bantu kami agar terus menghadirkan aplikasi Islami secara gratis dan tanpa iklan mengganggu.</p>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                        <span class="text-[11px] uppercase tracking-wider font-bold text-slate-400 block">Nomor DANA Donasi</span>
-                        <div class="flex items-center justify-between bg-white border border-emerald-300 px-4 py-2.5 rounded-lg">
-                            <span class="font-mono font-bold text-emerald-800 text-sm select-all">6285113716040</span>
-                            <button onclick="copyDana()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-md font-medium transition">Salin</button>
-                        </div>
-                    </div>
-                    <div class="pt-2">
-                        <a href="https://whatsapp.com/channel/0029Vb9Ed21JENy8WG1BXi2N" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
-                            <span>Gabung Saluran WhatsApp Kami</span>
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- Bottom Navigation -->
-        <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-2 px-3 flex justify-around items-center z-40 shadow-lg">
-            <button onclick="switchTab('beranda')" id="nav-beranda" class="nav-item flex flex-col items-center text-emerald-600 transition">
-                <span class="text-[10px] font-medium mt-1">Beranda</span>
-            </button>
-            <button onclick="switchTab('quran')" id="nav-quran" class="nav-item flex flex-col items-center text-slate-400 hover:text-emerald-600 transition">
-                <span class="text-[10px] font-medium mt-1">Al-Qur'an</span>
-            </button>
-            <button onclick="switchTab('doa')" id="nav-doa" class="nav-item flex flex-col items-center text-slate-400 hover:text-emerald-600 transition">
-                <span class="text-[10px] font-medium mt-1">Doa</span>
-            </button>
-            <button onclick="switchTab('dzikir')" id="nav-dzikir" class="nav-item flex flex-col items-center text-slate-400 hover:text-emerald-600 transition">
-                <span class="text-[10px] font-medium mt-1">Dzikir</span>
-            </button>
-            <button onclick="switchTab('support')" id="nav-support" class="nav-item flex flex-col items-center text-slate-400 hover:text-emerald-600 transition">
-                <span class="text-[10px] font-medium mt-1">Dukungan</span>
-            </button>
-        </nav>
-
-    </div>
-
-    <!-- Modal Detail Surah -->
-    <div id="surah-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl p-5 max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl">
-            <div class="flex justify-between items-center border-b pb-3 sticky top-0 bg-white z-10">
-                <div>
-                    <h3 id="modal-surah-title" class="font-bold text-slate-800 text-lg">Memuat...</h3>
-                    <p id="modal-surah-subtitle" class="text-xs text-slate-400">...</p>
-                </div>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold hover:bg-slate-200">✕</button>
-            </div>
-            <div id="modal-verses-container" class="space-y-4">
-                <div class="text-center py-10 text-slate-400 text-xs">Memuat ayat...</div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="tutupAdmin()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-medium text-sm transition">
+                    Batal
+                </button>
+                <button id="btn-aksi-admin" onclick="prosesLoginAdmin()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-medium text-sm transition shadow">
+                    Login Admin
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Core & API Logic -->
+    <!-- SCRIPT UTAMA & FIREBASE -->
     <script>
-        let allSurahs = [];
-        let currentAudio = null;
+        // Inisialisasi Firebase Realtime Database kamu
+        const firebaseConfig = {
+            databaseURL: "https://algadrimyquran-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // Data Doa
-        const doaData = [
-            { id: 1, kategori: 'wajib', judul: 'Doa Setelah Sholat Fardhu', arabic: 'اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ', latin: 'Allahumma a\'inni \'ala dzikrika wa syukrika wa husni \'ibadatik', arti: 'Ya Allah, bantulah aku untuk berdzikir kepada-Mu, bersyukur kepada-Mu, dan beribadah dengan baik kepada-Mu.' },
-            { id: 2, kategori: 'harian', judul: 'Doa Sebelum Tidur', arabic: 'بِاسْمِكَ اللَّهُمَّ أَحْيَا وَأَمُوتُ', latin: 'Bismikallahumma ahya wa amuut', arti: 'Dengan nama-Mu, ya Allah, aku hidup dan aku mati.' },
-            { id: 3, kategori: 'harian', judul: 'Doa Bangun Tidur', arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ', latin: 'Alhamdulillahilladzii ahyaana ba\'da maa amaatana wa ilaihin nusyuur', arti: 'Segala puji bagi Allah yang membangunkan kami setelah tertidur, dan kepada-Nya lah kami dibangkitkan.' },
-            { id: 4, kategori: 'harian', judul: 'Doa Masuk Kamar Mandi', arabic: 'اللَّهُمَّ إِنِّى أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ', latin: 'Allahumma inni a\'udzu bika minal khubutsi wal khabaaits', arti: 'Ya Allah, aku berlindung kepada-Mu dari setan laki-laki dan setan perempuan.' }
-        ];
+        // 1. Ambil Data Real-time dari Firebase
+        db.ref('pengaturan').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('app-title').innerText = data.title || "Algadri MyQuran";
+                document.getElementById('app-rekening').innerText = data.rekening || "6285117316040";
+                document.getElementById('app-sosmed').href = data.sosmed || "#";
+                if(data.dukungan) {
+                    // Format teks dukungan dengan mempertahankan baris baru
+                    let formatDukungan = data.dukungan.split('\n').map(item => `<p>${item}</p>`).join('');
+                    document.getElementById('app-dukungan').innerHTML = formatDukungan;
+                }
+            }
+        });
 
-        // Data Dzikir Nabi
-        const dzikirData = [
-            { arabic: 'سُبْحَانَ اللَّهِ', latin: 'Subhanallah (Maha Suci Allah)', target: 33 },
-            { arabic: 'الْحَمْدُ لِلَّهِ', latin: 'Alhamdulillah (Segala puji bagi Allah)', target: 33 },
-            { arabic: 'اللَّهُ أَكْبَرُ', latin: 'Allahu Akbar (Allah Maha Besar)', target: 33 },
-            { arabic: 'لَا إِلَهَ إِلَّا اللَّهُ', latin: 'La ilaha illallah (Tiada Tuhan selain Allah)', target: 100 },
-            { arabic: 'أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ', latin: 'Astaghfirullaha wa atubu ilaih', target: 100 }
-        ];
-        let currentDzikirIndex = 0;
-        let currentCount = 0;
+        // 2. Ambil Daftar Surat Al-Qur'an dari API Publik
+        fetch('https://equran.id/api/v2/surat')
+            .then(response => response.json())
+            .then(result => {
+                const container = document.getElementById('daftar-surat');
+                container.innerHTML = ''; 
+                
+                result.data.forEach(surat => {
+                    const item = document.createElement('div');
+                    item.className = "flex justify-between items-center p-3 hover:bg-emerald-50 rounded-xl transition border-b border-slate-50 cursor-pointer relative z-20";
+                    item.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">${surat.nomor}</span>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800">${surat.namaLatin}</h3>
+                                <p class="text-xs text-slate-400">${surat.arti} (${surat.jumlahAyat} Ayat)</p>
+                            </div>
+                        </div>
+                        <span class="text-lg font-serif text-emerald-600 font-bold">${surat.nama}</span>
+                    `;
+                    // Aksi ketika surat diklik (bisa dikustomisasi nanti)
+                    item.onclick = () => {
+                        alert("Membuka Surat: " + surat.namaLatin);
+                    };
+                    container.appendChild(item);
+                });
+            })
+            .catch(() => {
+                document.getElementById('daftar-surat').innerHTML = '<p class="text-xs text-red-500 text-center">Gagal memuat daftar surat. Periksa koneksi internet.</p>';
+            });
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2000);
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('text-emerald-600', 'font-semibold'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.add('text-slate-400'));
-            
-            const activeNav = document.getElementById(`nav-${tabId}`);
-            if(activeNav) {
-                activeNav.classList.remove('text-slate-400');
-                activeNav.classList.add('text-emerald-600', 'font-semibold');
+        // 3. Logika Ketuk 3 Kali untuk Keamanan Panel Admin
+        let ketukanCount = 0;
+        function cekAdminRahasia() {
+            ketukanCount++;
+            setTimeout(() => { ketukanCount = 0; }, 1000); // Reset dalam 1 detik
+            if (ketukanCount >= 3) {
+                bukaAdmin();
+                ketukanCount = 0;
             }
         }
 
-        // Fetch Surah List from API
-        async function fetchSurahs() {
-            try {
-                const res = await fetch('https://equran.id/api/v2/surat');
-                const json = await res.json();
-                allSurahs = json.data;
-                renderSurahList(allSurahs);
-                document.getElementById('quran-status').innerText = '114 Surah Dimuat';
-            } catch (err) {
-                document.getElementById('quran-status').innerText = 'Gagal memuat API';
-                document.getElementById('surah-list').innerHTML = `<div class="text-center py-10 text-red-500 text-xs">Gagal mengambil data Al-Qur'an. Periksa koneksi internet Anda.</div>`;
+        let isAdminLoggedIn = false;
+
+        function bukaAdmin() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+            if (!isAdminLoggedIn) {
+                document.getElementById('form-pengaturan').classList.add('hidden');
+                document.getElementById('btn-aksi-admin').innerText = "Login Admin";
             }
         }
 
-        function renderSurahList(surahs) {
-            const container = document.getElementById('surah-list');
-            if(surahs.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-slate-400 text-xs">Surah tidak ditemukan</div>`;
-                return;
+        function tutupAdmin() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        function prosesLoginAdmin() {
+            if (!isAdminLoggedIn) {
+                let user = document.getElementById('input-user').value;
+                let pass = document.getElementById('input-pass').value;
+
+                if (user === "algadri" && pass === "hakim201230") {
+                    isAdminLoggedIn = true;
+                    alert("Login Admin Berhasil!");
+                    document.getElementById('form-pengaturan').classList.remove('hidden');
+                    document.getElementById('btn-aksi-admin').innerText = "Simpan Perubahan";
+                    
+                    // Masukkan data saat ini ke dalam form input
+                    document.getElementById('input-title').value = document.getElementById('app-title').innerText;
+                    document.getElementById('input-rekening').value = document.getElementById('app-rekening').innerText;
+                    document.getElementById('input-sosmed').value = document.getElementById('app-sosmed').href;
+                    document.getElementById('input-dukungan').value = document.getElementById('app-dukungan').innerText;
+                } else {
+                    alert("Username atau Password salah!");
+                }
+            } else {
+                // Proses Simpan ke Firebase
+                const newTitle = document.getElementById('input-title').value;
+                const newRekening = document.getElementById('input-rekening').value;
+                const newSosmed = document.getElementById('input-sosmed').value;
+                const newDukungan = document.getElementById('input-dukungan').value;
+
+                db.ref('pengaturan').set({
+                    title: newTitle,
+                    rekening: newRekening,
+                    sosmed: newSosmed,
+                    dukungan: newDukungan
+                }, (error) => {
+                    if (error) {
+                        alert("Gagal menyimpan data!");
+                    } else {
+                        alert("Berhasil disimpan secara online!");
+                        tutupAdmin();
+                    }
+                });
             }
-            container.innerHTML = surahs.map(s => `
-                <div onclick="openSurahDetail(${s.nomor})" class="bg-white border border-slate-100 p-3.5 rounded-xl shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-300 transition">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center border border-emerald-100">${s.nomor}</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-slate-800">${s.namaLatin}</h4>
-                            <p class="text-[11px] text-slate-400">${s.arti} • ${s.jum
+        }
+    </script>
+</body>
+</html>
